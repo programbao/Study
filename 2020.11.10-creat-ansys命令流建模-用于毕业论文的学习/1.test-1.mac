@@ -1,0 +1,48 @@
+/CLEAR
+FINISH
+/FILNAME, wangjia, Key
+/PREP7
+!====================
+!单元、材料参数定义
+!====================
+!上旋节点建模
+CSYS, 1
+!半径
+r1 = 2500 $r2 = 5629 $r3 = 8755 $r4 = 11878 $r5 =14996 $r6 = 18108 $r7 = 21212 $r8 = 24308
+r9 = 27394 $r10 = 30496 $r11 = 33531 $r12 = 36580 $r13 = 39614 $r14 = 41406
+
+!高度
+h1 = 0 $h2 = -82 $h3 = -227 $h4 = -436 $h5 = -707 $h6 = -1041 $h7 = -1438 $h8 = -1897
+h9 = -2419 $h10 = -3003 $h11 = -3649 $h12 = -4357 $h13 = -5126 $h14 = -5611
+
+!node0 = 0
+!第一圈
+N, 1, r1, 10, h1
+*DO, i, 1, 8
+  N, i + 1, r1, 10 + i*40, h1
+*ENDDO
+*GET, node1, node, 0, num, maxd
+
+!第二圈
+N, node1 + 1, r2, 10, h2
+*DO, i, 2, 18
+  N, node1 + i, r2, 10 + (i - 1)*20, h2
+*ENDDO
+*GET, node2, node, 0, num, maxd
+
+!第三圈
+N, node2 + 1, r3, 10, h3
+*DO, i, 2, 18
+  N, node2 + i, r3, 10 + (i - 1)*20, h3
+*ENDDO
+*GET, node3, node, 0, num, maxd
+
+!第四~六圈
+*DO, j, 4, 6
+  k = j - 1
+  N, node%k% + 1, r%j%, 10, h%j%
+  *DO, i, 2, 36
+    N, node%k% + i, r%j%, 10 + (i - 1)*10, h%j%
+  *ENDDO
+  *GET, node%j%, node, 0, num, maxd
+*ENDDO

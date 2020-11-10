@@ -1,0 +1,67 @@
+*AFUN,DEG               !在角度函数的输入与输出使用度为单位
+FINISH
+/CLEAR
+/PREP7                  !进入前处理模块PREP7
+f = 40/7                !定义矢高8m
+span = 40               !定义跨度40m
+Kn = 8                  !定义沿环向分割的分数Kn = 8m
+Nx = 6                  !定义环杆圈数Nx = 6
+!(2) 计算节点坐标位置，并定义节点
+CSYS,2                  !转换为球面坐标系
+R = (Span*span/4 + f*f)/(2*f) !根据矢高和跨度计算曲面半径R
+DPha = Atn(Span/2/Sqrt(R*R - Span*Span/4))/Nx !计算相邻两圈环杆对应的球心夹角Dpha
+N,1,r,0,90                !定义顶点1号节点的位置坐标为（R,0,90）
+*DO,i,1,Nx                !第1~Nx圈的节点循环
+  *DO,j,1,Kn*i            !d对称区的节点循环，第i圈可分为Kn*i
+    x = R                 !输入x坐标
+    y = (j - 1)*360/(kn*i)  !输入y坐标，各圈上的节点数目为Kn*i
+    z = 90 - i*DPha          !输入Z坐标
+    N,1 + Kn*(i - 1)*i/2 + j, x, y, z !依次计算并定义节点的编号和位置
+  *ENDDO
+*ENDDO
+
+Numnnode = 1 + Kn*(Nx - 1)*Nx/2 + kn*Nx     !定义节点最大编号
+!(3定义单元类型和参数)
+ET,1,BEAM188              !定义第1类单元类型为Beam188
+MP,EX,1,2.06e11           !定义第1类材料的弹性模量EX
+MP,PRXY,1,0.3             !定义第1类材料的泊松比PRXY
+MP,DENS,1,7850            !定义第1类材料的密度DENS
+SECTYPE,1,BEAM,CTUBE      !定义第1类单元截面为圆管截面
+SECOFFSET,CENT                 !梁截面无偏移，位于几何中心
+SECDATA,0.147/2,0.152/2,8 !截面152*5的圆管截面，外直径为              
+!(4) 定义单元链接
+TYPE,1                    !设置单元类型号为1
+MAT,1                     !设置材料属性号为1
+SECNUM,1                  !设置截面号为1
+
+!环向杆链接
+*DO,i,1,Nx                !第1~Nx圈的节点循环
+  *DO,j,1,Kn*i - 1        !第1~Kn*i - 1 对称区的节点循环
+    E,1 + Kn*(i - 1)*i/2 + j,1 + Kn*(i - 1)*i/2 + j + 1
+  *ENDDO
+  E,1 + Kn*(i - 1)*i/2 + Kn*i,1 + Kn*(i - 1)*i/2 + 1
+*ENDDO
+
+!径向前单元链接
+*DO,i,1,Kn    !对各对称区循环
+  E,1,1 + i    !定义中心处径向杆单元
+*ENDDO
+
+*DO,i,1,Nx - 1    !从里圈第2圈开始向最外圈循环
+  *DO,j,1,Kn        !对各个对称区循环
+    *DO,k,1,i + 1
+      *IF,k,EQ,i + 1,THEN   !判断是否是当前对称区内的最后一根杆
+        *IF,j,EQ,Kn,THEN    !判断是否是最后一个对称区
+          E,1 + Kn*(i - 1)*i/2 + 1,1 + Kn*(i + 1)*i/2 + (j - 1)*(i + 1) + k
+          *ELSE
+            E,1 + Kn*(i - 1)*i/2 + (j - 1)*i + k,1 + kn*(i + 1)i/2 + (j - 1)*(i + 1) + k
+        *ENDIF
+        *ELSE
+          E,1 + Kn*(i - 1)*i/2 + (j - 1)*i + k,1 + Kn*(i +1)*i/2 + (j - 1)*(i + 1) + k
+      *ENDIF
+    *ENDDO
+    *DO,k,1,i
+      E,1 + Kn*(i - 1)*i/2 + (j - 1)*i + k,1 + Kn*(i + 1)*i/2 + (j - 1)*(i + 1) + k + 1
+    *ENDDO
+  *ENDDO
+*ENDDO
