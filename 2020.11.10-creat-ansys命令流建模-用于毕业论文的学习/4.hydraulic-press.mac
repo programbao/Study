@@ -1,3 +1,4 @@
+! ===========================================第一种方法=====================================
 finish    !基础步骤一：结束上一个工作状态
 /clear    !基础步骤二：清空当前的数据库
 !基础步骤三：文件命名（做测试可以不命名，也可以命名；做正式建模要命名）
@@ -51,16 +52,18 @@ larc,7,10,12,r2
 al,5,7,6,8
 !=====================创建第一个柱面
 !连接关键点
-l,1,7
-l,2,8
-l,3,9
-l,4,10
-!创建面
-al,1,9,5,10
-al,2,11,6,12
+! l,1,7
+! l,2,8
+! l,3,9
+! l,4,10
+! !创建面
+! al,1,9,5,10
+! al,2,11,6,12
 !上面可以使用BLC4创建矩形面的命令来简化为
-! BLC4,-1*r2,-0.5*h,r1,h
-! BLC4,r1,-0.5*h,r1,h
+BLC4,-1*r2,-0.5*h,r1,h
+BLC4,r1,-0.5*h,r1,h
+! 让所有面间相互粘接
+Aglue,all
 !======================根据面创建体
 !得到最大编号
 *get,kp_num,kp,0,num,maxd
@@ -69,4 +72,99 @@ l,1,kp_num + 1
 ! 拉伸体
 LL1 = _return
 allsel,all
-vdrag,all,,,,,,13
+vdrag,all,,,,,,LL1
+! ===============================
+! 划分网格
+!=== 根据线来划分---首先先选择线lsel
+lsel,s,loc,y,0.5*h
+lsel,a,loc,y,-0.5*h
+lsel,r,loc,z,0
+lesize,all,,,div1     ! 线的大小划分（段数）
+!=== 选择竖向线段
+lsel,s,loc,x,r1
+lsel,a,loc,x,r2
+lsel,a,loc,x,-r1
+lsel,a,loc,x,-r2
+lsel,r,loc,z,0
+lesize,all,,,div2  !划分段数
+!==== 选择半弧
+lsel,s,loc,y,0.5*h + 0.1,0.5*h + r2
+lsel,a,loc,y,- 0.5*h - 0.1,- 0.5*h - r2
+lsel,r,loc,z,0
+! 划分半弧大小（段数）
+lesize,all,,,arc_div1
+
+! ===深度方向划分
+! lsel,s,loc,z,0 + 0.1,3.4 - 0.1
+! lsel,u,loc,x,r2
+! lsel,u,loc,x,-r1
+! lesize,all,,,10
+lsel,a,loc,z,0 + 0.1,3.4 - 0.1
+esize,d/10
+allsel,all
+vsweep,all
+
+
+
+
+
+
+
+
+! =========================第二种方法=================
+finish    
+/clear    
+/prep7    
+et,1,solid186
+et,2,surf154
+mp,ex,1,2.1e11
+mp,prxy,1,0.2      
+r1 = 2.25   
+r2 = 4.5    
+h = 17      
+d = 3.4     
+press = 400e6
+div1 = 6
+div2 = 40
+arc_div1 = 20
+! 移动工作平面，创建弧形圆柱体
+wpoffs,,0.5*h
+cyl4,,,r1,0,r2,180,d  !cy14命令创建圆柱，前两个参数是指定圆心，这里默认是在工作平面上
+wpoffs,-r1
+blc4,,,-(r2 - r1),-0.5*h,d
+! 工作平面归位
+wpcsys,-1
+vsel,s,loc,y,0,0.5*h
+! 第二个参数1代表移动，2代表复制
+vgen,2,all,,,r2 + r1
+! 选择全部
+allsel,all
+! 对称
+vsymm,y,all
+! 粘接
+vglue,all
+! 划分网格
+! x方向
+lsel,s,loc,y,0.5*h
+lsel,a,loc,y,-0.5*h
+lsel,r,loc,z,0
+lesize,all,,,div1 
+! y方向
+lsel,s,loc,x,r1
+lsel,a,loc,x,r2
+lsel,a,loc,x,-r1
+lsel,a,loc,x,-r2
+lsel,r,loc,z,0
+lesize,all,,,div2 
+! 半弧
+lsel,s,loc,y,0.5*h + 0.1,0.5*h + r2
+lsel,a,loc,y,- 0.5*h - 0.1,- 0.5*h - r2
+lsel,r,loc,z,0
+lesize,all,,,arc_div1
+
+! z方向
+lsel,a,loc,z,0 + 0.1,3.4 - 0.1
+esize,d/10
+allsel,all
+! 划分
+vsweep,all
