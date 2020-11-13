@@ -118,20 +118,20 @@ finish
 et,1,solid186
 et,2,surf154
 mp,ex,1,2.1e11
-mp,prxy,1,0.2      
+mp,prxy,1,0.3      
 r1 = 2.25   
 r2 = 4.5    
 h = 17      
 d = 3.4     
-press = 400e6
 div1 = 6
 div2 = 40
 arc_div1 = 20
+Pre = 4e8   ! 工作荷载
 ! 移动工作平面，创建弧形圆柱体
 wpoffs,,0.5*h
 cyl4,,,r1,0,r2,180,d  !cy14命令创建圆柱，前两个参数是指定圆心，这里默认是在工作平面上
-wpoffs,-r1
-blc4,,,-(r2 - r1),-0.5*h,d
+wpoffs,-r2
+blc4,,,r2 - r1,-0.5*h,d
 ! 工作平面归位
 wpcsys,-1
 vsel,s,loc,y,0,0.5*h
@@ -155,16 +155,78 @@ lsel,a,loc,x,r2
 lsel,a,loc,x,-r1
 lsel,a,loc,x,-r2
 lsel,r,loc,z,0
-lesize,all,,,div2 
+lesize,all,,,div2*0.5 
 ! 半弧
-lsel,s,loc,y,0.5*h + 0.1,0.5*h + r2
-lsel,a,loc,y,- 0.5*h - 0.1,- 0.5*h - r2
+lsel,s,loc,y,0.5*h + 0.01,0.5*h + r2
+lsel,a,loc,y,- 0.5*h - 0.01,- 0.5*h - r2
 lsel,r,loc,z,0
 lesize,all,,,arc_div1
-
+allsel,all
 ! z方向
-lsel,a,loc,z,0 + 0.1,3.4 - 0.1
-esize,d/10
+! lsel,a,loc,z,0 + 0.1,3.4 - 0.1
+esize,h/div2/4
 allsel,all
 ! 划分
 vsweep,all
+! =======================
+! 受力分析
+! ! ! 第一种选中点的方法
+! ! 选择里圈半弧受力节点
+! asel,s,,,4,22,22 - 4
+! ! 选中面中所有的点 -- 最后面的参数1代表带边上和其他面一起共用的点一起选中
+! nsla,s,1
+! ! 第二种选中点的方法
+! 建立局部坐标系---工作平面会自动平移到这里
+! 第一个局部坐标系
+local,11,1,0,0.5*h    ! 参数顺序的意思是11是定义坐标系的编号，1代表柱坐标系，后面三个参数是x,y,z
+nsel,s,loc,x,r1
+! 第二个局部坐标系
+local,12,1,0,-0.5*h
+nsel,a,loc,x,r1
+! 建立单元
+type,2
+esurf,all
+! 在1类实体单元选中2类单元来进行分析
+eplot
+esel,s,type,,2
+! 施加压力
+sfe,all,1,pres,,pre/d
+allsel,all
+! 固定支座约束
+! z方向全部约束
+nsel,s,loc,z,d ! 选中Z方向的全部节点
+d,all,uz,0      ! z方向约束掉
+! 左边固定支座x方向也要约束，右边不用
+allsel
+! 工作坐标系归位
+csys,0
+! 先选中左右两边固定约束的节点
+nsel,s,loc,y,-0.5*h
+! y方向全部约束
+d,all,uy,0
+! 选中左边的节点
+nsel,r,loc,x,-r2,r1-r2
+! x方向全部约束
+d,all,ux,0
+! ==================
+! 求解
+/solu
+! 指定静力分析
+antype,0
+allsel,all
+solve
+! ============求解完成进行后处理
+! 图形界面操作
+
+! 然后进入后处理来获取最大最小位移
+/post1
+! 先排序节点排序nsort命令---0是倒序排列
+nsort,u,x,0
+! 获取节点---最大节点
+*get,dx,sort,0,max
+! 获取最大节点的编号--位置
+*get,dx,sort,0,imax
+! 选中节点
+nsel,s,,,8590
+! 和原来的作比较--变形云图用命令：pldisp
+pldisp,1
