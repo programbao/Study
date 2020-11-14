@@ -1,4 +1,89 @@
 finish
 /clear
 /prep7
-! 
+! 定义材料
+! 定义参数
+div1 = 3 !线段的长度
+! 定key
+k,1,0,div1*4
+! k,2,3,div1*4
+! 根据点复制
+kgen,2,all,,,,-3
+*get,kp_num,kp,0,num,maxd
+kgen,2,kp_num,,,,-3
+! z方向复制key
+kgen,2,all,,,,,3
+! 获取key最大编号
+*get,kp_num,kp,0,num,maxd
+! 创建两个桥边点
+k,kp_num + 1,0,div1,div1
+! k,kp_num + 2,3,div1,div1
+! 获取key最大编号
+*get,kp_num,kp,0,num,maxd
+! 创建桥面key
+k,kp_num + 1,0,div1*5,3
+k,kp_num + 2,0,0,3
+! k,kp_num + 3,3,div1*5,3
+! k,kp_num + 4,3,0,3
+! 创建桥上线 --- 五个点
+k,kp_num + 5,0,0,div1*2
+k,kp_num + 6,0,div1,div1*2
+k,kp_num + 7,0,div1*2,div1*2
+k,kp_num + 8,0,div1*3,div1*2
+k,kp_num + 9,0,div1*2,div1*3
+! ksel,s,loc,x,0
+! ksel,r,loc,z,div1+0.01,div1*3+0.01
+! 复制上关键点
+! kgen,2,all,,,3
+! lgen,2,all,,,,-3
+! 合并关键点--并重新编号
+! nummrg,all
+! numcmp,all
+! 选中关键点--并向上复制
+! 连接关键点
+l,1,2 $l,1,7 $l,2,4 $l,2,8 $l,4,3  $l,4,6 $l,4,10 $l,4,8 $l,4,12 $l,3,1 $l,3,5 $l,3,4 $l,3,9 $l,3,7 $l,3,11 $l,5,6 
+$l,5,11 $l,6,12
+! 连接桥面
+l,kp_num + 1,kp_num + 2 $l,kp_num + 3,kp_num + 4 $l,kp_num + 1,kp_num + 3 $l,kp_num + 2,kp_num + 4
+allsel
+! 线对称
+! lsymm,y,all
+! ! 获取key最大编号
+! *get,kp_num,kp,0,num,maxd
+! ! 创建桥面key
+! k,kp_num + 1,0,div1*5,3
+! k,kp_num + 2,0,-div1*5,3
+! k,kp_num + 3,3,div1*5,3
+! k,kp_num + 4,3,-div1*5,3
+! ! 连接桥面
+! l,kp_num + 1,kp_num + 2
+! l,kp_num + 3,kp_num + 4
+! l,kp_num + 1,kp_num + 3
+! l,kp_num + 2,kp_num + 4
+! allsel
+! 再次获取最大关键点的编号
+! *get,kp_num,kp,0,num,maxd
+! lsel,s,loc,z,3
+! lsel,r,loc,y,div1*5-0.01,-div1*5+0.01
+! ! 选中的最小编号
+! *get,lmin_num,line,0,num,min
+! ! 选中的最大编号
+! *get,lmax_num,line,0,num,max
+! ! 将桥面线段分段
+! ! 线段的头节点
+! kl,lmin_num,0.2,kp_num + 1
+! ! 循环遍历创建点
+! *do,i,3,8
+!   kl,lmin_num,0.1*i,kp_num + i
+! *enddo
+! *get,kp_num,kp,0,num,maxd
+! ! 再次获取当前关键点最大编号
+! kl,lmax_num,0.2,kp_num + 1
+! *do,i,3,8
+!   kl,lmax_num,0.1*i,kp_num + i
+! *enddo
+! 合并关键点--并重新编号
+! nummrg,all
+! numcmp,all
+
+

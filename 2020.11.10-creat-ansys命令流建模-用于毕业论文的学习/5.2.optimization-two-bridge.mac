@@ -1,0 +1,56 @@
+finish
+/clear
+/prep7
+! 定义材料
+mp,ex,1,2e11
+mp,prxy,1,0.3
+mp,dens,1,780
+et,1,beam188
+! 定义参数
+div1 = 3 !线段的长度
+! 定key
+n,1,0,div1*4
+! n,2,3,div1*4
+! 根据点复制
+ngen,3,1,all,,,,-3
+*get,np_num,node,0,num,maxd
+! ngen,2,1,np_num,,,-3
+! z方向复制node
+! ngen,6,1,all,,,,,0
+n,np_num + 1,0,div1*4,3
+n,np_num + 2,0,div1*3,3
+n,np_num + 3,0,div1*2,3
+
+! 获取node最大编号
+*get,np_num,node,0,num,maxd
+! 创建桥边点
+n,np_num + 1,0,div1,div1
+! n,np_num + 2,3,div1,div1
+! 获取node最大编号
+*get,np_num,node,0,num,maxd
+! 创建桥面node
+n,np_num + 1,0,div1*5,3
+n,np_num + 2,0,0,3
+! 创建桥上线 --- 五个点
+n,np_num + 5,0,0,div1*2
+n,np_num + 6,0,div1,div1*2
+n,np_num + 7,0,div1*2,div1*2
+n,np_num + 8,0,div1*3,div1*2
+n,np_num + 9,0,div1*2,div1*3
+! 指定单元类型
+! 连接一面的关键点
+e,1,2 $e,2,3 $e,8,4 $e,4,5 $e,5,6 $e,6,7 $e,7,9 $e,15,14 $e,14,13 $e,13,12 $e,1,4 $e,2,4 $e,2,5 $e,2,6 $e,3,6 $e,8,15 $e,5,15 $e,6,15 $e,6,14 $e,6,13 $e,7,13 $e,9,13 $e,9,12 $e,14,16 $e,15,16 $e,16,12
+! 选中全部进行复制
+allsel
+*get,np_num,node,0,num,maxd
+! 复制移动节点
+! 转GUI截面操作
+! egen,2,all,,,3
+! 中间关键点连接
+l,1,10 $l,2,11 $l,3,17 $l,8,18 $l,9,23 $l,15,24 $l,14,25 $l,13,26 $l,12,27 $l,16,28
+allsel
+! 对称，往y轴
+lsymm,y,all
+! 合并关键点--并重新编号
+nummrg,all
+numcmp,all

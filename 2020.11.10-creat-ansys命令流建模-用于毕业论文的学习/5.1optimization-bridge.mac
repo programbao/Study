@@ -1,0 +1,44 @@
+finish
+/clear
+/prep7
+! 定义材料
+! 定义参数
+div1 = 3 !线段的长度
+! 定key
+k,1,0,div1*4
+! k,2,3,div1*4
+! 根据点复制
+kgen,2,all,,,,-3
+*get,kp_num,kp,0,num,maxd
+kgen,2,kp_num,,,,-3
+! z方向复制key
+kgen,2,all,,,,,3
+! 获取key最大编号
+*get,kp_num,kp,0,num,maxd
+! 创建两个桥边点
+k,kp_num + 1,0,div1,div1
+! k,kp_num + 2,3,div1,div1
+! 获取key最大编号
+*get,kp_num,kp,0,num,maxd
+! 创建桥面key
+k,kp_num + 1,0,div1*5,3
+k,kp_num + 2,0,0,3
+! 创建桥上线 --- 五个点
+k,kp_num + 5,0,0,div1*2
+k,kp_num + 6,0,div1,div1*2
+k,kp_num + 7,0,div1*2,div1*2
+k,kp_num + 8,0,div1*3,div1*2
+k,kp_num + 9,0,div1*2,div1*3
+! 连接一面的关键点
+l,1,2 $l,2,3 $l,8,4 $l,4,5 $l,5,6 $l,6,7 $l,7,9 $l,15,14 $l,14,13 $l,13,12 $l,1,4 $l,2,4 $l,2,5 $l,2,6 $l,3,6 $l,8,15 $l,5,15 $l,6,15 $l,6,14 $l,6,13 $l,7,13 $l,9,13 $l,9,12 $l,14,16 $l,15,16 $l,16,12
+! 选中全部进行复制
+allsel
+lgen,2,all,,,3
+! 中间关键点连接
+l,1,10 $l,2,11 $l,3,17 $l,8,18 $l,9,23 $l,15,24 $l,14,25 $l,13,26 $l,12,27 $l,16,28
+allsel
+! 对称，往y轴
+lsymm,y,all
+! 合并关键点--并重新编号
+nummrg,all
+numcmp,all
