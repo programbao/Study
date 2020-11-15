@@ -192,6 +192,8 @@ esel,s,type,,2
 ! 施加压力
 sfe,all,1,pres,,pre/d
 allsel,all
+
+
 ! 固定支座约束
 ! z方向全部约束
 nsel,s,loc,z,d ! 选中Z方向的全部节点

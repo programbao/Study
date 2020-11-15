@@ -5,9 +5,13 @@ finish
 mp,ex,1,2e11
 mp,prxy,1,0.3
 mp,dens,1,780
-et,1,beam188
+! et,1,beam188 ! 梁柱结构单元
+et,1,beam188 ! 杆状结构单元
+et,2,solid186  !壳体结构单元
+
 ! 定义参数
 div1 = 3 !线段的长度
+press = 600
 ! 定key
 n,1,0,div1*4
 ! n,2,3,div1*4
@@ -39,18 +43,72 @@ n,np_num + 8,0,div1*3,div1*2
 n,np_num + 9,0,div1*2,div1*3
 ! 指定单元类型
 ! 连接一面的关键点
+type,1
+r,1 !定义实常数
+real,1
+mat,l
 e,1,2 $e,2,3 $e,8,4 $e,4,5 $e,5,6 $e,6,7 $e,7,9 $e,15,14 $e,14,13 $e,13,12 $e,1,4 $e,2,4 $e,2,5 $e,2,6 $e,3,6 $e,8,15 $e,5,15 $e,6,15 $e,6,14 $e,6,13 $e,7,13 $e,9,13 $e,9,12 $e,14,16 $e,15,16 $e,16,12
 ! 选中全部进行复制
 allsel
 *get,np_num,node,0,num,maxd
 ! 复制移动节点
-! 转GUI截面操作
-! egen,2,all,,,3
+ngen,2,np_num,all,,,3
+! 镜像单元
+esym, ,np_num,all
+! 重新编号
+nummrg,all
+numcmp,all
 ! 中间关键点连接
-l,1,10 $l,2,11 $l,3,17 $l,8,18 $l,9,23 $l,15,24 $l,14,25 $l,13,26 $l,12,27 $l,16,28
 allsel
-! 对称，往y轴
-lsymm,y,all
+*do,i,1,14
+  e,i,i+14 
+*enddo
+save
+*get,np_num,node,0,num,maxd
+! 镜像节点
+nsym,y,np_num,all
+! 镜像单元
+esym, ,np_num,all
+allsel
 ! 合并关键点--并重新编号
 nummrg,all
 numcmp,all
+! ! 移动工作平面
+wpoffs,0,-div1*5,div1
+! type,1 !截面代号
+! r,1 !定义实常数
+! real,1
+! mat,l
+! 创建桥面体
+blc4,,,div1,div1*10,div1/20
+! 定义桥面单元
+type,2
+vsel,all
+! 划分长方体的网格
+esize,div1/20
+! 体网格划分
+vsweep,all
+! 合并单元
+CM, e1, elem
+! 加载======
+! 选中加载节点
+nsel,s,loc,z,3
+nsel,r,loc,y,3,-15
+nsel,u,loc,y,-6,-15+0.01
+! d,all,uz,0      ! z方向约束掉
+! 施加压力
+! f,node,lab,value,value2,nend,ninc
+f,7,fz,-600
+f,21,fz,-600
+f,9,fz,-600
+f,23,fz,-600
+f,35,fz,-600
+f,47,fz,-600
+f,48,fz,-600
+f,36,fz,-600
+/solu
+! 指定静力分析
+antype,0
+allsel,all
+solve
+! sfe,all,1,pre,,pre/d
