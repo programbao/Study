@@ -1,0 +1,148 @@
+finish
+/clear
+/prep7
+! 定义材料
+et,1,beam188
+!*  
+! et,2,shell181     
+et,2,solid65     
+!*  
+mp,ex,1,2.1e11 
+mp,prxy,1,0.3   
+mp,dens,1,7850 
+mp,ex,2,3.5e10 
+mp,prxy,2,0.1667   
+mp,dens,2,,2500 
+sectype,1,beam,rect,,0  
+secdata,0.4,0.4
+! 定义参数
+div1 = 3 !线段的长度
+div1Size = 200 !桥面划分的网格数
+v = 60   !移动速度 120km/h
+elemLoadTime = (div1*10/div1Size)/(v*3.6)    !每个单元上的时间
+! 定key
+n,1,0,div1*4
+! n,2,3,div1*4
+! 根据点复制
+ngen,3,1,all,,,,-3
+*get,np_num,node,0,num,maxd
+! ngen,2,1,np_num,,,-3
+! z方向复制node
+! ngen,6,1,all,,,,,0
+n,np_num + 1,0,div1*4,3
+n,np_num + 2,0,div1*3,3
+n,np_num + 3,0,div1*2,3
+! 获取node最大编号
+*get,np_num,node,0,num,maxd
+! 创建桥边点
+n,np_num + 1,0,div1,div1
+! n,np_num + 2,3,div1,div1
+! 获取node最大编号
+*get,np_num,node,0,num,maxd
+! 创建桥面node
+n,np_num + 1,0,div1*5,3
+n,np_num + 2,0,0,3
+! 创建桥上线 --- 五个点
+n,np_num + 5,0,0,div1*2
+n,np_num + 6,0,div1,div1*2
+n,np_num + 7,0,div1*2,div1*2
+n,np_num + 8,0,div1*3,div1*2
+n,np_num + 9,0,div1*2,div1*3
+! 指定单元类型
+! 连接一面的关键点
+type,1
+mat,1
+secnum,1
+! r,1 !定义实常数
+! real,1
+! mat,l
+e,1,2 $e,2,3 $e,8,4 $e,4,5 $e,5,6 $e,6,7 $e,7,9 $e,15,14 $e,14,13 $e,13,12 $e,1,4 $e,2,4 $e,2,5 $e,2,6 $e,3,6 $e,8,15 $e,5,15 $e,6,15 $e,6,14 $e,6,13 $e,7,13 $e,9,13 $e,9,12 $e,14,16 $e,15,16 $e,16,12
+! 选中全部进行复制
+allsel
+*get,np_num,node,0,num,maxd
+! 复制移动节点
+ngen,2,np_num,all,,,3
+! 镜像单元
+esym, ,np_num,all
+! 合并和重新编号
+nummrg,all
+numcmp,all
+! 中间关键点连接
+allsel
+*do,i,1,14
+  e,i,i+14 
+*enddo
+save
+allsel
+*get,np_num,node,0,num,maxd
+! ====镜像桥杆的另一半
+! 镜像节点
+nsym,y,np_num,all
+! 镜像单元
+esym, ,np_num,all
+allsel
+! 合并--并重新编号
+nummrg,all
+numcmp,all
+! 选中约束节点
+nsel,s,loc,z,3
+nsel,r,loc,y,6,12
+nsel,a,loc,y,-6,-12
+nsel,r,loc,z,3
+d,all,all
+allsel
+! 选中加载节点
+nsel,s,loc,z,3
+nsel,r,loc,y,3,-3
+nsel,a,loc,y,15
+nsel,a,loc,y,-15
+! 静荷载
+! 施加压力
+f,all,fz,-600
+! ======桥面是混凝土单元的
+! ! 移动工作平面
+wpoffs,0,-div1*5,div1
+! 创建桥面体
+blc4,,,div1,div1*10,(div1*10)/div1Size
+! 选择单元类型
+type,2      !单元类型
+! mat,2       !材料类型num
+! secnum,2   !单元数据类型
+vsel,all
+! 划分长方体的网格
+esize,(div1*10)/div1Size
+! 体网格划分
+vsweep,all
+! ! 合并--并重新编号
+nummrg,all
+! numcmp,all
+/solu
+! 指定静力分析
+antype,0
+allsel,all
+solve   !---解决静力
+! sum
+! 施加移动荷载
+*do,i,1,div1Size,1
+  outres,all,all
+  time,i*elemLoadTime   !移动的时间
+  nsubst,10
+  fdele,all,all
+  allsel
+  nsel,s,loc,x,1.5
+  nsel,r,loc,z,3
+  nsel,r,loc,y,15 - i*(div1/20)
+  f,all,fz,-500
+  allsel
+  solve
+*enddo
+finish
+! nummrg,all
+! numcmp,all
+
+! 进入后处理
+/post1
+! 显示结构变形图
+pldisp,2
+! 显示总位移云图
+plnsol,u,sum,0,1.0

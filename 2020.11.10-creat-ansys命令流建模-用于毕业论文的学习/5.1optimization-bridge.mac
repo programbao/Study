@@ -1,9 +1,49 @@
+! finish
+! /clear
+! /prep7
+! ! 定义材料
+! et,1,beam188
+! !*  
+! ! et,2,shell181     
+! et,2,solid65     
+! !*  
+! mp,ex,1,2.1e11 
+! mp,prxy,1,0.3   
+! mp,dens,1,7850 
+! mp,ex,2,3.5e10 
+! mp,prxy,2,0.1667   
+! mp,dens,2,,2500 
+! sectype,1,beam,rect,,0  
+! secdata,0.4,0.4
+! ! 定义参数
+! div1 = 3 !线段的长度
 finish
 /clear
 /prep7
 ! 定义材料
+et,1,beam188
+!*  
+et,2,shell181     
+!*  
+mp,ex,1,2.1e11 
+mp,prxy,1,0.3   
+mp,dens,1,7850 
+mp,ex,2,3.5e10 
+mp,prxy,2,0.1667   
+mp,dens,2,,2500 
+sectype,1,beam,rect,,0  
+secdata,0.4,0.4
+! sectype,3,shell  
+! secdata,0.3
+sect,2,shell  
+secdata, 0.3,2,0.0,1
+! secdata,0.3,2,0.0,1
 ! 定义参数
 div1 = 3 !线段的长度
+
+div1Size = 200 !桥面划分的网格数
+v = 60   !移动速度 120km/h
+elemLoadTime = (div1*10/div1Size)/(v*3.6)
 ! 定key
 k,1,0,div1*4
 ! k,2,3,div1*4
@@ -35,10 +75,27 @@ l,1,2 $l,2,3 $l,8,4 $l,4,5 $l,5,6 $l,6,7 $l,7,9 $l,15,14 $l,14,13 $l,13,12 $l,1,
 allsel
 lgen,2,all,,,3
 ! 中间关键点连接
-l,1,10 $l,2,11 $l,3,17 $l,8,18 $l,9,23 $l,15,24 $l,14,25 $l,13,26 $l,12,27 $l,16,28
+l,1,10 $l,2,11 $l,3,17 $l,8,18 $l,4,19 $l,5,20 $l,6,21 $l,7,22 $l,9,23 $l,15,24 $l,14,25 $l,13,26 $l,12,27 $l,16,28
 allsel
 ! 对称，往y轴
 lsymm,y,all
 ! 合并关键点--并重新编号
 nummrg,all
 numcmp,all
+! 创建面
+a,8,18,44,32
+! =======
+! 网格划分
+! 选中线
+lsel,all
+lesize,all,,,div1*2
+type,1
+lmesh,all
+allsel,all
+!面划分网格
+asel,all
+type,2
+mat,2
+secnum,2
+aesize,all,div1Size
+amesh,all
